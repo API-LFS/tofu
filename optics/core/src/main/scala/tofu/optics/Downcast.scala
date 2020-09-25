@@ -24,7 +24,9 @@ object Downcast extends MonoOpticCompanion(PDowncast)
 object PDowncast extends OpticCompanion[PDowncast] {
 
   def compose[S, T, A, B, U, V](f: PDowncast[A, B, U, V], g: PDowncast[S, T, A, B]): PDowncast[S, T, U, V] =
-    s => g.downcast(s).flatMap(f.downcast)
+    new PComposed[PDowncast, S, T, A, B, U, V](g, f) with PDowncast[S, T, U, V]{
+      def downcast(s: S): Option[U] = g.downcast(s).flatMap(f.downcast)
+    }
 
   trait Context extends PExtract.Context {
     def default: X
