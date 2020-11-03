@@ -7,7 +7,7 @@ object Dependencies {
   object Version {
     val circe = "0.13.0"
 
-    val tethys = "0.11.0"
+    val tethys = "0.11.1-LFS"
 
     val cats = "2.2.0"
 
@@ -19,7 +19,7 @@ object Dependencies {
 
     val enumeratum = "1.6.1"
 
-    val derevo = "0.11.5"
+    val derevo = "0.11.7-LFS"
 
     val slf4j = "1.7.30"
 
@@ -37,9 +37,9 @@ object Dependencies {
 
     val zio = "1.0.3"
 
-    val zioCats = "2.2.0.1"
+    val zioCats = "2.2.0.2-LFS"
 
-    val shapeless = "2.3.3"
+    val shapeless = "2.4.0-M1"
 
     val refined = "0.9.17"
 
@@ -94,4 +94,26 @@ object Dependencies {
   val betterMonadicFor = "com.olegpy"     %% "better-monadic-for" % Version.betterMonadicFor
   val silencerPlugin   = "com.github.ghik" % "silencer-plugin"    % Version.silencer cross CrossVersion.full
   val silencerLib      = "com.github.ghik" % "silencer-lib"       % Version.silencer % Provided cross CrossVersion.full
+}
+
+
+
+object G {
+  import scala.util.Try
+  import sys.process._
+  import sbt._
+
+  final val Name = "GitHub Package Registry"
+  final val Host = "maven.pkg.github.com"
+  final val AnyRepo = "_"
+
+  def propOrEnv[A](name: String, fn: String => A = identity[String] _): Option[A] =
+    (sys.props.get(name) orElse sys.env.get(name)) map fn
+
+  def credentials: Option[Credentials] =
+    (propOrEnv("GITHUB_TOKEN") orElse Try("git config github.token".!!.trim).toOption)
+      .map(Credentials(Name, Host, AnyRepo, _))
+
+  def registry(owner: String, repo: String = AnyRepo): MavenRepository =
+    s"$Name ($owner${if (repo == AnyRepo) "" else s"/$repo"})" at s"https://$Host/$owner/$repo"
 }
